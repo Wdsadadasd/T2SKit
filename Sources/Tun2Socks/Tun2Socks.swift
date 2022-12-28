@@ -1,9 +1,10 @@
 import Foundation
-import T2SKitC
 
-public enum Tun2Socks {
+@_silgen_name("run") private func rust_run(_ config: UnsafePointer<CChar>!)
+
+@frozen public enum Tun2Socks {
         
-    public static func start(fd: Int32, host: String, port: Int) {
+    public static func run(tunFd: Int32, port: Int) {
         let config: String = """
         {
             "log": {
@@ -13,7 +14,7 @@ public enum Tun2Socks {
                 {
                     "protocol": "tun",
                     "settings": {
-                        "fd": \(fd)
+                        "fd": \(tunFd)
                     },
                     "tag": "tun"
                 }
@@ -22,7 +23,7 @@ public enum Tun2Socks {
                 {
                     "protocol": "socks",
                     "settings": {
-                        "address": "\(host)",
+                        "address": "127.0.0.1",
                         "port": \(port)
                     },
                     "tag": "clash"
@@ -30,10 +31,6 @@ public enum Tun2Socks {
             ]
         }
         """
-        start_tun2socks(config.cString(using: .utf8))
-    }
-    
-    public static func stop() {
-        stop_tun2socks()
+        rust_run(config.cString(using: .utf8))
     }
 }

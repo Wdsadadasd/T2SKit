@@ -3,13 +3,12 @@
 import PackageDescription
 
 let package = Package(
-  name: "T2SKit",
+  name: "Tun2Socks",
   products: [
-    .library(name: "T2SKit", targets: ["T2SKit"])
+    .library(name: "Tun2Socks", targets: ["Tun2Socks"])
   ],
   targets: [
-    .target(name: "T2SKit", dependencies: ["T2SKitC", "Tun2SocksFramework"]),
-    .target(name: "T2SKitC", publicHeadersPath: "."),
+    .target(name: "Tun2Socks", dependencies: ["Tun2SocksFramework"]),
     .binaryTarget(
       name: "Tun2SocksFramework",
       url: "https://github.com/AppleClash/T2SKit/releases/download/1.3.0/Tun2SocksFramework.xcframework.zip",

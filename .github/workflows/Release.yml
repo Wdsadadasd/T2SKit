@@ -20,65 +20,20 @@ jobs:
       - name: Setup enviornment
         run: |
           rustup target install aarch64-apple-ios
-          rustup target install aarch64-apple-ios-sim
-          rustup target install x86_64-apple-ios
-          rustup target install aarch64-apple-darwin
-          rustup target install x86_64-apple-darwin
           cargo install cargo-lipo
       
       - uses: actions/checkout@v3
         with:
           submodules: 'true'
           
-      - name: Build xcframework
+      - name: Make lib
         run: |
           cd tun2socks
-          make xcframework
-          cd target
-          zip -r Tun2SocksFramework.xcframework.zip Tun2SocksFramework.xcframework
-          
-      - name: Detect checksum
-        run: |
-          export TEMP=`shasum -a 256 tun2socks/target/Tun2SocksFramework.xcframework.zip`
-          export CHECKSUM=${TEMP:0:64}
-          echo "FILE_CHECKSUM=${CHECKSUM}" >> $GITHUB_ENV
-          unset CHECKSUM
-          unset TEMP
-          
-      - name: Update package file
-        run: |
-          echo "// swift-tools-version:5.5" > Package.swift
-          echo "" >> Package.swift
-          echo "import PackageDescription" >> Package.swift
-          echo "" >> Package.swift
-          echo "let package = Package(" >> Package.swift
-          echo "  name: \"T2SKit\"," >> Package.swift
-          echo "  products: [" >> Package.swift
-          echo "    .library(name: \"T2SKit\", targets: [\"T2SKit\"])" >> Package.swift
-          echo "  ]," >> Package.swift
-          echo "  targets: [" >> Package.swift
-          echo "    .target(name: \"T2SKit\", dependencies: [\"T2SKitC\", \"Tun2SocksFramework\"])," >> Package.swift
-          echo "    .target(name: \"T2SKitC\", publicHeadersPath: \".\")," >> Package.swift
-          echo "    .binaryTarget(" >> Package.swift
-          echo "      name: \"Tun2SocksFramework\"," >> Package.swift
-          echo "      url: \"https://github.com/AppleClash/T2SKit/releases/download/${{ github.event.inputs.version }}/Tun2SocksFramework.xcframework.zip\"," >> Package.swift
-          echo "      checksum: \"${{ env.FILE_CHECKSUM }}\"" >> Package.swift
-          echo "    )" >> Package.swift
-          echo "  ]" >> Package.swift
-          echo ")" >> Package.swift
-          
-      - name: Commit
-        run: |
-          git config --local user.email "github-actions@users.noreply.github.com"
-          git config --local user.name "github-actions"
-          git config remote.origin.url "https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/AppleClash/T2SKit.git"
-          git add ./Package.swift
-          git commit -m "Release ${{ github.event.inputs.version }}!!!" -a
-          git push origin main
+          cargo lipo --release --package tun2socks --targets "aarch64-apple-ios"
           
       - name: Upload Release
         uses: softprops/action-gh-release@v1
         with:
           draft: false
           tag_name: ${{ github.event.inputs.version }}
-          files: tun2socks/target/Tun2SocksFramework.xcframework.zip
+          files: target/universal/release/libtun2socks.a
